@@ -78,3 +78,47 @@ window.addEventListener('unhandledrejection', function (event) {
 
   event.preventDefault(); // Предотвращаем стандартный вывод
 });
+
+window.handleRoutes = function(pages) {
+  console.log('window.handleRoutes', {pages});
+  const pagesData = {
+    type: 'handlePages',
+    timestamp: new Date().toISOString(),
+    pages: pages,
+  };
+  window.parent.postMessage(pagesData, '*');
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  const elements = document.querySelectorAll('[data-easytag]');
+  
+  elements.forEach(element => {
+    element.addEventListener('click', function(event) {
+      event.stopPropagation();
+      const easyTagData = this.getAttribute('data-easytag');
+      console.log({easyTagData});
+      // Отправляем данные наверх
+      window.parent.postMessage({
+        type: 'easyTagClick',
+        timestamp: new Date().toISOString(),
+        data: easyTagData
+      }, '*');
+    });
+  });
+});
+
+// Добавляем этот код в iframe
+document.addEventListener('DOMContentLoaded', function() {
+  // Обработчик сообщений
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'enableEasyEditMode') {
+      document.body.classList.add('easy-mode-edit');
+      console.log('✅ Easy edit mode enabled');
+    }
+    
+    if (event.data && event.data.type === 'disableEasyEditMode') {
+      document.body.classList.remove('easy-mode-edit');
+      console.log('❌ Easy edit mode disabled');
+    }
+  });
+});
